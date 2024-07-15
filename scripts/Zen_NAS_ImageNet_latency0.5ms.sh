@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env bash
+export PATH="/home/chen/anaconda3/envs/torch/bin:$PATH"
 
 cd "$(dirname "$0")"
 set -e
