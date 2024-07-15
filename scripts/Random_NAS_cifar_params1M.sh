@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env python
+
 cd "$(dirname "$0")"
 set -e
 

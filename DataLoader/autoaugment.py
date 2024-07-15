@@ -2,12 +2,12 @@
 This file is modified from:
 https://github.com/DeepVoltaire/AutoAugment/blob/master/autoaugment.py
 '''
-
 from PIL import Image, ImageEnhance, ImageOps
 import numpy as np
 import random
 
-fillcolor=(128, 128, 128)
+fillcolor = (128, 128, 128)
+
 
 class ImageNetPolicy(object):
     """ Randomly choose one of the best 24 Sub-policies on ImageNet.
@@ -22,6 +22,7 @@ class ImageNetPolicy(object):
         >>>     ImageNetPolicy(),
         >>>     transforms.ToTensor()])
     """
+
     def __init__(self, fillcolor=(128, 128, 128)):
         self.policies = [
             SubPolicy(0.4, "posterize", 8, 0.6, "rotate", 9, fillcolor),
@@ -55,7 +56,6 @@ class ImageNetPolicy(object):
             SubPolicy(0.8, "equalize", 8, 0.6, "equalize", 3, fillcolor)
         ]
 
-
     def __call__(self, img):
         policy_idx = random.randint(0, len(self.policies) - 1)
         return self.policies[policy_idx](img)
@@ -77,6 +77,7 @@ class CIFAR10Policy(object):
         >>>     CIFAR10Policy(),
         >>>     transforms.ToTensor()])
     """
+
     def __init__(self, fillcolor=(128, 128, 128)):
         self.policies = [
             SubPolicy(0.1, "invert", 7, 0.2, "contrast", 6, fillcolor),
@@ -110,7 +111,6 @@ class CIFAR10Policy(object):
             SubPolicy(0.7, "translateY", 9, 0.9, "autocontrast", 1, fillcolor)
         ]
 
-
     def __call__(self, img):
         policy_idx = random.randint(0, len(self.policies) - 1)
         return self.policies[policy_idx](img)
@@ -132,6 +132,7 @@ class SVHNPolicy(object):
         >>>     SVHNPolicy(),
         >>>     transforms.ToTensor()])
     """
+
     def __init__(self, fillcolor=(128, 128, 128)):
         self.policies = [
             SubPolicy(0.9, "shearX", 4, 0.2, "invert", 3, fillcolor),
@@ -165,7 +166,6 @@ class SVHNPolicy(object):
             SubPolicy(0.7, "shearX", 2, 0.1, "invert", 5, fillcolor)
         ]
 
-
     def __call__(self, img):
         policy_idx = random.randint(0, len(self.policies) - 1)
         return self.policies[policy_idx](img)
@@ -174,63 +174,77 @@ class SVHNPolicy(object):
         return "AutoAugment SVHN Policy"
 
 
-
 def _shearX(img, magnitude):
     return img.transform(
         img.size, Image.AFFINE, (1, magnitude * random.choice([-1, 1]), 0, 0, 1, 0),
         Image.BICUBIC, fillcolor=fillcolor)
+
 
 def _shearY(img, magnitude):
     return img.transform(
         img.size, Image.AFFINE, (1, 0, 0, magnitude * random.choice([-1, 1]), 1, 0),
         Image.BICUBIC, fillcolor=fillcolor)
 
+
 def _translateX(img, magnitude):
     return img.transform(
         img.size, Image.AFFINE, (1, 0, magnitude * img.size[0] * random.choice([-1, 1]), 0, 1, 0),
         fillcolor=fillcolor)
+
 
 def _translateY(img, magnitude):
     return img.transform(
         img.size, Image.AFFINE, (1, 0, 0, 0, 1, magnitude * img.size[1] * random.choice([-1, 1])),
         fillcolor=fillcolor)
 
+
 def _rotate(img, magnitude):
     return rotate_with_fill(img, magnitude)
+
 
 def _color(img, magnitude):
     return ImageEnhance.Color(img).enhance(1 + magnitude * random.choice([-1, 1]))
 
+
 def _posterize(img, magnitude):
     return ImageOps.posterize(img, magnitude)
 
+
 def _solarize(img, magnitude):
     return ImageOps.solarize(img, magnitude)
+
 
 def _contrast(img, magnitude):
     return ImageEnhance.Contrast(img).enhance(
         1 + magnitude * random.choice([-1, 1]))
 
+
 def _sharpness(img, magnitude):
     return ImageEnhance.Sharpness(img).enhance(
         1 + magnitude * random.choice([-1, 1]))
+
 
 def _brightness(img, magnitude):
     return ImageEnhance.Brightness(img).enhance(
         1 + magnitude * random.choice([-1, 1]))
 
+
 def _autocontrast(img, magnitude):
     return ImageOps.autocontrast(img)
+
 
 def _equalize(img, magnitude):
     return ImageOps.equalize(img)
 
+
 def _invert(img, magnitude):
     return ImageOps.invert(img)
+
 
 def rotate_with_fill(img, magnitude):
     rot = img.convert("RGBA").rotate(magnitude)
     return Image.composite(rot, Image.new("RGBA", rot.size, (128,) * 4), rot).convert(img.mode)
+
 
 class SubPolicy(object):
     def __init__(self, p1, operation1, magnitude_idx1, p2, operation2, magnitude_idx2, fillcolor=(128, 128, 128)):
@@ -279,7 +293,6 @@ class SubPolicy(object):
         self.p2 = p2
         self.operation2 = func[operation2]
         self.magnitude2 = ranges[operation2][magnitude_idx2]
-
 
     def __call__(self, img):
         if random.random() < self.p1: img = self.operation1(img, self.magnitude1)
