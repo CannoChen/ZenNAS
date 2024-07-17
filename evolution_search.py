@@ -2,8 +2,8 @@
 Copyright (C) 2010-2021 Alibaba Group Holding Limited.
 '''
 
-
 import os, sys
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import argparse, random, logging, time
@@ -15,10 +15,12 @@ import Masternet
 import PlainNet
 # from tqdm import tqdm
 
-from ZeroShotProxy import compute_zen_score, compute_te_nas_score, compute_syncflow_score, compute_gradnorm_score, compute_NASWOT_score
+from ZeroShotProxy import compute_zen_score, compute_te_nas_score, compute_syncflow_score, compute_gradnorm_score, \
+    compute_NASWOT_score
 import benchmark_network_latency
 
 working_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 def parse_cmd_options(argv):
     parser = argparse.ArgumentParser()
@@ -29,9 +31,12 @@ def parse_cmd_options(argv):
                         help='.py file to specify the search space.')
     parser.add_argument('--evolution_max_iter', type=int, default=int(48e4),
                         help='max iterations of evolution.')
-    parser.add_argument('--budget_model_size', type=float, default=None, help='budget of model size ( number of parameters), e.g., 1e6 means 1M params')
-    parser.add_argument('--budget_flops', type=float, default=None, help='budget of flops, e.g. , 1.8e6 means 1.8 GFLOPS')
-    parser.add_argument('--budget_latency', type=float, default=None, help='latency of forward inference per mini-batch, e.g., 1e-3 means 1ms.')
+    parser.add_argument('--budget_model_size', type=float, default=None,
+                        help='budget of model size ( number of parameters), e.g., 1e6 means 1M params')
+    parser.add_argument('--budget_flops', type=float, default=None,
+                        help='budget of flops, e.g. , 1.8e6 means 1.8 GFLOPS')
+    parser.add_argument('--budget_latency', type=float, default=None,
+                        help='latency of forward inference per mini-batch, e.g., 1e-3 means 1ms.')
     parser.add_argument('--max_layers', type=int, default=None, help='max number of layers of the network.')
     parser.add_argument('--batch_size', type=int, default=None, help='number of instances in one mini-batch.')
     parser.add_argument('--input_image_size', type=int, default=None,
@@ -45,6 +50,7 @@ def parse_cmd_options(argv):
                         help='number of classes')
     module_opt, _ = parser.parse_known_args(argv)
     return module_opt
+
 
 def get_new_random_structure_str(AnyPlainNet, structure_str, num_classes, get_search_space_func,
                                  num_replaces=1):
@@ -92,6 +98,7 @@ def get_splitted_structure_str(AnyPlainNet, structure_str, num_classes):
     splitted_net_str = the_net.split(split_layer_threshold=6)
     return splitted_net_str
 
+
 def get_latency(AnyPlainNet, random_structure_str, gpu, args):
     the_model = AnyPlainNet(num_classes=args.num_classes, plainnet_struct=random_structure_str,
                             no_create=False, no_reslink=False)
@@ -104,6 +111,7 @@ def get_latency(AnyPlainNet, random_structure_str, gpu, args):
     del the_model
     torch.cuda.empty_cache()
     return the_latency
+
 
 def compute_nas_score(AnyPlainNet, random_structure_str, gpu, args):
     # compute network zero-shot proxy score
@@ -152,15 +160,15 @@ def compute_nas_score(AnyPlainNet, random_structure_str, gpu, args):
         # raise err
         the_nas_core = -9999
 
-
     del the_model
     torch.cuda.empty_cache()
     return the_nas_core
 
+
 def main(args, argv):
     gpu = args.gpu
     if gpu is not None:
-        torch.cuda.set_device('cuda:{}'.format(gpu))
+        torch.cuda.set_device(f'cuda:${gpu}')
         torch.backends.cudnn.benchmark = True
 
     best_structure_txt = os.path.join(args.save_dir, 'best_structure.txt')
@@ -169,9 +177,11 @@ def main(args, argv):
         return None
 
     # load search space config .py file
+    # 加载搜索空间的配置文件
     select_search_space = global_utils.load_py_module_from_path(args.search_space)
 
     # load masternet
+    # 加载masternet
     AnyPlainNet = Masternet.MasterNet
 
     masternet = AnyPlainNet(num_classes=args.num_classes, opt=args, argv=argv, no_create=True)
@@ -196,7 +206,8 @@ def main(args, argv):
             max_score = max(popu_zero_shot_score_list)
             min_score = min(popu_zero_shot_score_list)
             elasp_time = time.time() - start_timer
-            logging.info(f'loop_count={loop_count}/{args.evolution_max_iter}, max_score={max_score:4g}, min_score={min_score:4g}, time={elasp_time/3600:4g}h')
+            logging.info(
+                f'loop_count={loop_count}/{args.evolution_max_iter}, max_score={max_score:4g}, min_score={min_score:4g}, time={elasp_time / 3600:4g}h')
 
         # ----- generate a random structure ----- #
         if len(popu_structure_list) <= 10:
@@ -254,20 +265,16 @@ def main(args, argv):
     return popu_structure_list, popu_zero_shot_score_list, popu_latency_list
 
 
-
-
-
-
 if __name__ == '__main__':
+    # 解析参数
     args = parse_cmd_options(sys.argv)
+    # 创建日志文件
     log_fn = os.path.join(args.save_dir, 'evolution_search.log')
     global_utils.create_logging(log_fn)
 
     info = main(args, sys.argv)
     if info is None:
         exit()
-
-
 
     popu_structure_list, popu_zero_shot_score_list, popu_latency_list = info
 

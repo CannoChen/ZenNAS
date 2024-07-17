@@ -16,7 +16,9 @@ __block_type_round_channels_base_dict__ = {
     SuperResKXKX.SuperResK3K3: 8,
     SuperResKXKX.SuperResK5K5: 8,
     SuperResKXKX.SuperResK7K7: 8,
-    SuperResK1KXK1.SuperResK1K3K1: 8, SuperResK1KXK1.SuperResK1K5K1: 8, SuperResK1KXK1.SuperResK1K7K1: 8,
+    SuperResK1KXK1.SuperResK1K3K1: 8,
+    SuperResK1KXK1.SuperResK1K5K1: 8,
+    SuperResK1KXK1.SuperResK1K7K1: 8,
 }
 
 __block_type_min_channels_base_dict__ = {
@@ -97,4 +99,5 @@ def gen_search_space(block_list, block_id):
             pass
         pass  # end for student_block_type_list in seach_space_block_type_list_list:
     pass
+    print(student_blocks_list)
     return student_blocks_list_list
