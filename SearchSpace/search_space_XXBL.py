@@ -99,5 +99,5 @@ def gen_search_space(block_list, block_id):
             pass
         pass  # end for student_block_type_list in seach_space_block_type_list_list:
     pass
-    print(student_blocks_list)
+    # print(student_blocks_list)
     return student_blocks_list_list
