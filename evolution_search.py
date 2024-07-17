@@ -168,7 +168,7 @@ def compute_nas_score(AnyPlainNet, random_structure_str, gpu, args):
 def main(args, argv):
     gpu = args.gpu
     if gpu is not None:
-        torch.cuda.set_device(f'cuda:${gpu}')
+        torch.cuda.set_device(f'cuda:{gpu}')
         torch.backends.cudnn.benchmark = True
 
     best_structure_txt = os.path.join(args.save_dir, 'best_structure.txt')
