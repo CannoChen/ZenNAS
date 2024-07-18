@@ -2,7 +2,9 @@
 Copyright (C) 2010-2021 Alibaba Group Holding Limited.
 '''
 
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
@@ -10,7 +12,7 @@ import torch, argparse
 from torch import nn
 import torch.nn.functional as F
 import PlainNet
-from PlainNet import parse_cmd_options, _create_netblock_list_from_str_, basic_blocks, super_blocks
+from PlainNet import parse_cmd_options, basic_blocks, super_blocks
 
 
 def parse_cmd_options(argv):
@@ -49,11 +51,11 @@ class MasterNet(PlainNet.PlainNet):
             else:
                 use_se = False
 
-
         super().__init__(argv=argv, opt=opt, num_classes=num_classes, plainnet_struct=plainnet_struct,
-                                       no_create=no_create, no_reslink=no_reslink, no_BN=no_BN, use_se=use_se)
+                         no_create=no_create, no_reslink=no_reslink, no_BN=no_BN, use_se=use_se)
         self.last_channels = self.block_list[-1].out_channels
-        self.fc_linear = basic_blocks.Linear(in_channels=self.last_channels, out_channels=self.num_classes, no_create=no_create)
+        self.fc_linear = basic_blocks.Linear(in_channels=self.last_channels, out_channels=self.num_classes,
+                                             no_create=no_create)
 
         self.no_create = no_create
         self.no_reslink = no_reslink
