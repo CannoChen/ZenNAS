@@ -159,6 +159,8 @@ def _create_netblock_list_from_str_(s, no_create=False, **kwargs):
             if tmp_idx > 0 and s[0:tmp_idx] == the_block_class_name:
                 is_found_block_class = True
                 the_block_class = _all_netblocks_dict_[the_block_class_name]
+                print("_create_netblock_list_from_str_::theblock_class", the_block_class)
+                print("_create_netblock_list_from_str_::s", s)
                 the_block, remaining_s = the_block_class.create_from_str(s, no_create=no_create, **kwargs)
                 if the_block is not None:
                     block_list.append(the_block)
