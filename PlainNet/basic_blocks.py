@@ -2,8 +2,8 @@
 Copyright (C) 2010-2021 Alibaba Group Holding Limited.
 '''
 
-
 import os, sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch
@@ -13,6 +13,7 @@ import numpy as np
 import uuid
 
 from PlainNet import _get_right_parentheses_index_, _create_netblock_list_from_str_
+
 
 class PlainNetBasicBlockClass(nn.Module):
     def __init__(self, in_channels=None, out_channels=None, stride=1, no_create=False, block_name=None, **kwargs):
@@ -32,7 +33,8 @@ class PlainNetBasicBlockClass(nn.Module):
         return type(self).__name__ + '({},{},{})'.format(self.in_channels, self.out_channels, self.stride)
 
     def __repr__(self):
-        return type(self).__name__ + '({}|{},{},{})'.format(self.block_name, self.in_channels, self.out_channels, self.stride)
+        return type(self).__name__ + '({}|{},{},{})'.format(self.block_name, self.in_channels, self.out_channels,
+                                                            self.stride)
 
     def get_output_resolution(self, input_resolution):
         raise RuntimeError('Not implemented')
@@ -66,7 +68,7 @@ class PlainNetBasicBlockClass(nn.Module):
         out_channels = int(param_str_split[1])
         stride = int(param_str_split[2])
         return cls(in_channels=in_channels, out_channels=out_channels, stride=stride,
-                               block_name=tmp_block_name, no_create=no_create), s[idx + 1:]
+                   block_name=tmp_block_name, no_create=no_create), s[idx + 1:]
 
     @classmethod
     def is_instance_from_str(cls, s):
@@ -90,7 +92,7 @@ class AdaptiveAvgPool(PlainNetBasicBlockClass):
         return self.netblock(x)
 
     def __str__(self):
-        return type(self).__name__ + '({},{})'.format(self.out_channels // self.output_size**2, self.output_size)
+        return type(self).__name__ + '({},{})'.format(self.out_channels // self.output_size ** 2, self.output_size)
 
     def __repr__(self):
         return type(self).__name__ + '({}|{},{})'.format(self.block_name,
@@ -231,10 +233,12 @@ class ConvKX(PlainNetBasicBlockClass):
         return self.netblock(x)
 
     def __str__(self):
-        return type(self).__name__ + '({},{},{},{})'.format(self.in_channels, self.out_channels, self.kernel_size, self.stride)
+        return type(self).__name__ + '({},{},{},{})'.format(self.in_channels, self.out_channels, self.kernel_size,
+                                                            self.stride)
 
     def __repr__(self):
-        return type(self).__name__ + '({}|{},{},{},{})'.format(self.block_name, self.in_channels, self.out_channels, self.kernel_size, self.stride)
+        return type(self).__name__ + '({}|{},{},{},{})'.format(self.block_name, self.in_channels, self.out_channels,
+                                                               self.kernel_size, self.stride)
 
     def get_output_resolution(self, input_resolution):
         return input_resolution // self.stride
@@ -253,7 +257,6 @@ class ConvKX(PlainNetBasicBlockClass):
                                       padding=self.padding, bias=False)
             self.netblock.train()
             self.netblock.requires_grad_(True)
-
 
     @classmethod
     def create_from_str(cls, s, no_create=False, **kwargs):
@@ -275,7 +278,7 @@ class ConvKX(PlainNetBasicBlockClass):
         kernel_size = int(split_str[2])
         stride = int(split_str[3])
         return cls(in_channels=in_channels, out_channels=out_channels,
-                      kernel_size=kernel_size, stride=stride, no_create=no_create, block_name=tmp_block_name), s[idx + 1:]
+                   kernel_size=kernel_size, stride=stride, no_create=no_create, block_name=tmp_block_name), s[idx + 1:]
 
 
 class ConvDW(PlainNetBasicBlockClass):
@@ -332,15 +335,13 @@ class ConvDW(PlainNetBasicBlockClass):
 
     def set_in_channels(self, c):
         self.in_channels = c
-        self.out_channels=self.in_channels
+        self.out_channels = self.in_channels
         if not self.no_create:
             self.netblock = nn.Conv2d(in_channels=self.in_channels, out_channels=self.out_channels,
                                       kernel_size=self.kernel_size, stride=self.stride,
                                       padding=self.padding, bias=False, groups=self.in_channels)
             self.netblock.train()
             self.netblock.requires_grad_(True)
-
-
 
     @classmethod
     def create_from_str(cls, s, no_create=False, **kwargs):
@@ -361,7 +362,9 @@ class ConvDW(PlainNetBasicBlockClass):
         kernel_size = int(split_str[1])
         stride = int(split_str[2])
         return ConvDW(out_channels=out_channels,
-                      kernel_size=kernel_size, stride=stride, no_create=no_create, block_name=tmp_block_name), s[idx + 1:]
+                      kernel_size=kernel_size, stride=stride, no_create=no_create, block_name=tmp_block_name), s[
+                                                                                                               idx + 1:]
+
 
 class ConvKXG2(ConvKX):
     def __init__(self, in_channels=None, out_channels=None, kernel_size=None, stride=None, copy_from=None,
@@ -369,6 +372,7 @@ class ConvKXG2(ConvKX):
         super(ConvKXG2, self).__init__(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
                                        stride=stride, copy_from=copy_from, no_create=no_create,
                                        groups=2, **kwargs)
+
 
 class ConvKXG4(ConvKX):
     def __init__(self, in_channels=None, out_channels=None, kernel_size=None, stride=None, copy_from=None,
@@ -385,19 +389,21 @@ class ConvKXG8(ConvKX):
                                        stride=stride, copy_from=copy_from, no_create=no_create,
                                        groups=8, **kwargs)
 
+
 class ConvKXG16(ConvKX):
     def __init__(self, in_channels=None, out_channels=None, kernel_size=None, stride=None, copy_from=None,
                  no_create=False, **kwargs):
         super(ConvKXG16, self).__init__(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-                                       stride=stride, copy_from=copy_from, no_create=no_create,
-                                       groups=16, **kwargs)
+                                        stride=stride, copy_from=copy_from, no_create=no_create,
+                                        groups=16, **kwargs)
+
 
 class ConvKXG32(ConvKX):
     def __init__(self, in_channels=None, out_channels=None, kernel_size=None, stride=None, copy_from=None,
                  no_create=False, **kwargs):
         super(ConvKXG32, self).__init__(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-                                       stride=stride, copy_from=copy_from, no_create=no_create,
-                                       groups=32, **kwargs)
+                                        stride=stride, copy_from=copy_from, no_create=no_create,
+                                        groups=32, **kwargs)
 
 
 class Flatten(PlainNetBasicBlockClass):
@@ -447,10 +453,9 @@ class Flatten(PlainNetBasicBlockClass):
         return Flatten(out_channels=out_channels, no_create=no_create, block_name=tmp_block_name), s[idx + 1:]
 
 
-
 class Linear(PlainNetBasicBlockClass):
     def __init__(self, in_channels=None, out_channels=None, bias=True, copy_from=None,
-                 no_create=False,  **kwargs):
+                 no_create=False, **kwargs):
         super(Linear, self).__init__(**kwargs)
         self.no_create = no_create
 
@@ -519,12 +524,11 @@ class Linear(PlainNetBasicBlockClass):
         use_bias = int(split_str[2])
 
         return Linear(in_channels=in_channels, out_channels=out_channels, bias=use_bias == 1,
-            block_name=tmp_block_name, no_create=no_create), s[idx+1 :]
-
+                      block_name=tmp_block_name, no_create=no_create), s[idx + 1:]
 
 
 class MaxPool(PlainNetBasicBlockClass):
-    def __init__(self, out_channels, kernel_size, stride, no_create=False,  **kwargs):
+    def __init__(self, out_channels, kernel_size, stride, no_create=False, **kwargs):
         super(MaxPool, self).__init__(**kwargs)
         self.in_channels = out_channels
         self.out_channels = out_channels
@@ -647,7 +651,7 @@ class Sequential(PlainNetBasicBlockClass):
     def create_from_str(cls, s, no_create=False, **kwargs):
         assert Sequential.is_instance_from_str(s)
         the_right_paraen_idx = _get_right_parentheses_index_(s)
-        param_str = s[len('Sequential(')+1:the_right_paraen_idx]
+        param_str = s[len('Sequential(') + 1:the_right_paraen_idx]
         # find block_name
         tmp_idx = param_str.find('|')
         if tmp_idx < 0:
@@ -694,7 +698,6 @@ class MultiSumBlock(PlainNetBasicBlockClass):
 
     def __repr__(self):
         return str(self)
-
 
     def get_output_resolution(self, input_resolution):
         the_res = self.block_list[0].get_output_resolution(input_resolution)
@@ -751,9 +754,9 @@ class MultiSumBlock(PlainNetBasicBlockClass):
         pass  # end while
 
         if len(the_block_list) == 0:
-            return None, s[idx+1:]
+            return None, s[idx + 1:]
 
-        return MultiSumBlock(block_list=the_block_list, block_name=tmp_block_name, no_create=no_create), s[idx+1:]
+        return MultiSumBlock(block_list=the_block_list, block_name=tmp_block_name, no_create=no_create), s[idx + 1:]
 
 
 class MultiCatBlock(PlainNetBasicBlockClass):
@@ -817,7 +820,6 @@ class MultiCatBlock(PlainNetBasicBlockClass):
             the_block.set_in_channels(c)
         self.out_channels = np.sum([x.out_channels for x in self.block_list])
 
-
     @classmethod
     def create_from_str(cls, s, no_create=False, **kwargs):
         assert MultiCatBlock.is_instance_from_str(s)
@@ -848,7 +850,7 @@ class MultiCatBlock(PlainNetBasicBlockClass):
         pass  # end while
 
         if len(the_block_list) == 0:
-            return None, s[idx+1:]
+            return None, s[idx + 1:]
 
         return MultiCatBlock(block_list=the_block_list, block_name=tmp_block_name,
                              no_create=no_create), s[idx + 1:]
@@ -898,14 +900,14 @@ class RELU(PlainNetBasicBlockClass):
             param_str = param_str[tmp_idx + 1:]
 
         out_channels = int(param_str)
-        return RELU(out_channels=out_channels, no_create=no_create, block_name=tmp_block_name), s[idx+1:]
-
+        return RELU(out_channels=out_channels, no_create=no_create, block_name=tmp_block_name), s[idx + 1:]
 
 
 class ResBlock(PlainNetBasicBlockClass):
     '''
     ResBlock(in_channles, inner_blocks_str). If in_channels is missing, use block_list[0].in_channels as in_channels
     '''
+
     def __init__(self, block_list, in_channels=None, stride=None, no_create=False, **kwargs):
         super(ResBlock, self).__init__(**kwargs)
         self.block_list = block_list
@@ -1002,7 +1004,7 @@ class ResBlock(PlainNetBasicBlockClass):
         self.block_list[0].set_in_channels(c)
         last_channels = self.block_list[0].out_channels
         if len(self.block_list) >= 2 and \
-                ( isinstance(self.block_list[0], ConvKX) or isinstance(self.block_list[0], ConvDW)) and \
+                (isinstance(self.block_list[0], ConvKX) or isinstance(self.block_list[0], ConvDW)) and \
                 isinstance(self.block_list[1], BN):
             self.block_list[1].set_in_channels(last_channels)
 
@@ -1015,9 +1017,6 @@ class ResBlock(PlainNetBasicBlockClass):
                 )
                 self.proj.train()
                 self.proj.requires_grad_(True)
-
-
-
 
     @classmethod
     def create_from_str(cls, s, no_create=False, **kwargs):
@@ -1035,12 +1034,13 @@ class ResBlock(PlainNetBasicBlockClass):
             param_str = param_str[tmp_idx + 1:]
 
         first_comma_index = param_str.find(',')
-        if first_comma_index < 0 or not param_str[0:first_comma_index].isdigit():  # cannot parse in_channels, missing, use default
+        if first_comma_index < 0 or not param_str[
+                                        0:first_comma_index].isdigit():  # cannot parse in_channels, missing, use default
             in_channels = None
             the_block_list, remaining_s = _create_netblock_list_from_str_(param_str, no_create=no_create)
         else:
             in_channels = int(param_str[0:first_comma_index])
-            param_str = param_str[first_comma_index+1:]
+            param_str = param_str[first_comma_index + 1:]
             second_comma_index = param_str.find(',')
             if second_comma_index < 0 or not param_str[0:second_comma_index].isdigit():
                 the_block_list, remaining_s = _create_netblock_list_from_str_(param_str, no_create=no_create)
@@ -1053,15 +1053,16 @@ class ResBlock(PlainNetBasicBlockClass):
 
         assert len(remaining_s) == 0
         if the_block_list is None or len(the_block_list) == 0:
-            return None, s[idx+1:]
+            return None, s[idx + 1:]
         return ResBlock(block_list=the_block_list, in_channels=in_channels,
-                        stride=the_stride, no_create=no_create, block_name=tmp_block_name), s[idx+1:]
+                        stride=the_stride, no_create=no_create, block_name=tmp_block_name), s[idx + 1:]
 
 
 class ResBlockProj(PlainNetBasicBlockClass):
     '''
     ResBlockProj(in_channles, inner_blocks_str). If in_channels is missing, use block_list[0].in_channels as in_channels
     '''
+
     def __init__(self, block_list, in_channels=None, stride=None, no_create=False, **kwargs):
         super(ResBlockProj, self).__init__(**kwargs)
         self.block_list = block_list
@@ -1081,11 +1082,10 @@ class ResBlockProj(PlainNetBasicBlockClass):
             tmp_output_res = self.get_output_resolution(tmp_input_res)
             self.stride = tmp_input_res // tmp_output_res
 
-
         self.proj = nn.Sequential(
             nn.Conv2d(self.in_channels, self.out_channels, 1, self.stride),
             nn.BatchNorm2d(self.out_channels),
-            )
+        )
 
     def forward(self, x):
         if len(self.block_list) == 0:
@@ -1152,7 +1152,7 @@ class ResBlockProj(PlainNetBasicBlockClass):
         self.block_list[0].set_in_channels(c)
         last_channels = self.block_list[0].out_channels
         if len(self.block_list) >= 2 and \
-                ( isinstance(self.block_list[0], ConvKX) or isinstance(self.block_list[0], ConvDW)) and \
+                (isinstance(self.block_list[0], ConvKX) or isinstance(self.block_list[0], ConvDW)) and \
                 isinstance(self.block_list[1], BN):
             self.block_list[1].set_in_channels(last_channels)
 
@@ -1165,9 +1165,6 @@ class ResBlockProj(PlainNetBasicBlockClass):
                 )
                 self.proj.train()
                 self.proj.requires_grad_(True)
-
-
-
 
     @classmethod
     def create_from_str(cls, s, no_create=False, **kwargs):
@@ -1185,12 +1182,13 @@ class ResBlockProj(PlainNetBasicBlockClass):
             param_str = param_str[tmp_idx + 1:]
 
         first_comma_index = param_str.find(',')
-        if first_comma_index < 0 or not param_str[0:first_comma_index].isdigit():  # cannot parse in_channels, missing, use default
+        if first_comma_index < 0 or not param_str[
+                                        0:first_comma_index].isdigit():  # cannot parse in_channels, missing, use default
             in_channels = None
             the_block_list, remaining_s = _create_netblock_list_from_str_(param_str, no_create=no_create)
         else:
             in_channels = int(param_str[0:first_comma_index])
-            param_str = param_str[first_comma_index+1:]
+            param_str = param_str[first_comma_index + 1:]
             second_comma_index = param_str.find(',')
             if second_comma_index < 0 or not param_str[0:second_comma_index].isdigit():
                 the_block_list, remaining_s = _create_netblock_list_from_str_(param_str, no_create=no_create)
@@ -1203,9 +1201,10 @@ class ResBlockProj(PlainNetBasicBlockClass):
 
         assert len(remaining_s) == 0
         if the_block_list is None or len(the_block_list) == 0:
-            return None, s[idx+1:]
+            return None, s[idx + 1:]
         return ResBlockProj(block_list=the_block_list, in_channels=in_channels,
-                        stride=the_stride, no_create=no_create, block_name=tmp_block_name), s[idx+1:]
+                            stride=the_stride, no_create=no_create, block_name=tmp_block_name), s[idx + 1:]
+
 
 class SE(PlainNetBasicBlockClass):
     def __init__(self, out_channels=None, copy_from=None,
@@ -1224,7 +1223,7 @@ class SE(PlainNetBasicBlockClass):
                 return
             else:
                 self.netblock = nn.Sequential(
-                    nn.AdaptiveAvgPool2d((1,1)),
+                    nn.AdaptiveAvgPool2d((1, 1)),
                     nn.Conv2d(in_channels=self.out_channels, out_channels=self.se_channels, kernel_size=1, stride=1,
                               padding=0, bias=False),
                     nn.BatchNorm2d(self.se_channels),
@@ -1243,18 +1242,18 @@ class SE(PlainNetBasicBlockClass):
         return 'SE({})'.format(self.out_channels)
 
     def __repr__(self):
-        return 'SE({}|{})'.format(self.block_name,self.out_channels)
+        return 'SE({}|{})'.format(self.block_name, self.out_channels)
 
     def get_output_resolution(self, input_resolution):
         return input_resolution
 
     def get_FLOPs(self, input_resolution):
         return self.in_channels * self.se_channels + self.se_channels * self.out_channels + self.out_channels + \
-            self.out_channels * input_resolution ** 2
+               self.out_channels * input_resolution ** 2
 
     def get_model_size(self):
         return self.in_channels * self.se_channels + 2 * self.se_channels + self.se_channels * self.out_channels + \
-            2 * self.out_channels
+               2 * self.out_channels
 
     def set_in_channels(self, c):
         self.in_channels = c
@@ -1289,7 +1288,6 @@ class SE(PlainNetBasicBlockClass):
 
         out_channels = int(param_str)
         return SE(out_channels=out_channels, no_create=no_create, block_name=tmp_block_name), s[idx + 1:]
-
 
 
 class SwishImplementation(torch.autograd.Function):
@@ -1340,7 +1338,6 @@ class Swish(PlainNetBasicBlockClass):
         self.in_channels = c
         self.out_channels = c
 
-
     @classmethod
     def create_from_str(cls, s, no_create=False, **kwargs):
         assert Swish.is_instance_from_str(s)
@@ -1357,7 +1354,6 @@ class Swish(PlainNetBasicBlockClass):
 
         out_channels = int(param_str)
         return Swish(out_channels=out_channels, no_create=no_create, block_name=tmp_block_name), s[idx + 1:]
-
 
 
 def _add_bn_layer_(block_list):
@@ -1419,6 +1415,7 @@ def _add_se_layer_(block_list):
 
     return new_block_list
 
+
 def _replace_relu_with_swish_layer_(block_list):
     new_block_list = []
     for the_block in block_list:
@@ -1437,6 +1434,7 @@ def _replace_relu_with_swish_layer_(block_list):
     pass
 
     return new_block_list
+
 
 def _fuse_convkx_and_bn_(convkx, bn):
     the_weight_scale = bn.weight / torch.sqrt(bn.running_var + bn.eps)
@@ -1471,8 +1469,6 @@ def _fuse_bn_layer_for_blocks_list_(block_list):
             pass
         pass
     pass  # end with
-
-
 
 
 def register_netblocks_dict(netblocks_dict: dict):

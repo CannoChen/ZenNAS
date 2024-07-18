@@ -2,14 +2,15 @@
 Copyright (C) 2010-2021 Alibaba Group Holding Limited.
 '''
 
-
 import os, sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch, argparse
 from torch import nn
 
 _all_netblocks_dict_ = {}
+
 
 def parse_cmd_options(argv, opt=None):
     parser = argparse.ArgumentParser()
@@ -19,6 +20,7 @@ def parse_cmd_options(argv, opt=None):
     module_opt, _ = parser.parse_known_args(argv)
 
     return module_opt
+
 
 def _get_right_parentheses_index_(s):
     # assert s[0] == '('
@@ -34,6 +36,7 @@ def _get_right_parentheses_index_(s):
         else:
             pass
     return None
+
 
 def pretty_format(plainnet_str, indent=2):
     the_formated_str = ''
@@ -56,7 +59,7 @@ def pretty_format(plainnet_str, indent=2):
         right_par_idx = _get_right_parentheses_index_(s)
         the_block_class_name = s[0:left_par_idx]
 
-        if the_block_class_name in ['MultiSumBlock', 'MultiCatBlock','MultiGroupBlock']:
+        if the_block_class_name in ['MultiSumBlock', 'MultiCatBlock', 'MultiGroupBlock']:
             # print('\n' + indent_str + the_block_class_name + '(')
             sub_str = s[left_par_idx + 1:right_par_idx]
 
@@ -66,7 +69,7 @@ def pretty_format(plainnet_str, indent=2):
                 tmp_block_name = 'no_name'
             else:
                 tmp_block_name = sub_str[0:tmp_idx]
-                sub_str = sub_str[tmp_idx+1:]
+                sub_str = sub_str[tmp_idx + 1:]
 
             if len(tmp_block_name) > 8:
                 tmp_block_name = tmp_block_name[0:4] + tmp_block_name[-4:]
@@ -95,7 +98,7 @@ def pretty_format(plainnet_str, indent=2):
                 in_channels = None
             else:
                 in_channels = int(sub_str[0:first_comma_index])
-                sub_str = sub_str[first_comma_index+1:]
+                sub_str = sub_str[first_comma_index + 1:]
                 second_comma_index = sub_str.find(',')
                 if second_comma_index < 0 or not sub_str[0:second_comma_index].isdigit():
                     the_stride = None
@@ -141,10 +144,11 @@ def pretty_format(plainnet_str, indent=2):
 
             the_formated_str += the_block_class_name + '({}|'.format(tmp_block_name) + sub_str + ')'
 
-        s = s[right_par_idx+1:]
+        s = s[right_par_idx + 1:]
     pass  # end while
 
     return the_formated_str
+
 
 def _create_netblock_list_from_str_(s, no_create=False, **kwargs):
     block_list = []
@@ -166,12 +170,15 @@ def _create_netblock_list_from_str_(s, no_create=False, **kwargs):
         pass  # end for
         assert is_found_block_class
     pass  # end while
+    print("_create_netblock_list_from_str_::", block_list)
     return block_list, ''
+
 
 def create_netblock_list_from_str(s, no_create=False, **kwargs):
     the_list, remaining_s = _create_netblock_list_from_str_(s, no_create=no_create, **kwargs)
     assert len(remaining_s) == 0
     return the_list
+
 
 def add_SE_block(structure_str: str):
     new_str = ''
@@ -191,6 +198,7 @@ def add_SE_block(structure_str: str):
 
     new_str += structure_str
     return new_str
+
 
 class PlainNet(nn.Module):
     def __init__(self, argv=None, opt=None, num_classes=None, plainnet_struct=None, no_create=False,
@@ -227,6 +235,7 @@ class PlainNet(nn.Module):
 
         the_s = self.plainnet_struct  # type: str
 
+        print("PlainNet\\_init_.py::", the_s)
         block_list, remaining_s = _create_netblock_list_from_str_(the_s, no_create=no_create, **kwargs)
         assert len(remaining_s) == 0
 
@@ -273,17 +282,21 @@ class PlainNet(nn.Module):
         self.module_list = nn.Module(self.block_list)
 
 
-
 from PlainNet import basic_blocks
+
 _all_netblocks_dict_ = basic_blocks.register_netblocks_dict(_all_netblocks_dict_)
 
 from PlainNet import super_blocks
+
 _all_netblocks_dict_ = super_blocks.register_netblocks_dict(_all_netblocks_dict_)
 from PlainNet import SuperResKXKX
+
 _all_netblocks_dict_ = SuperResKXKX.register_netblocks_dict(_all_netblocks_dict_)
 
 from PlainNet import SuperResK1KXK1
+
 _all_netblocks_dict_ = SuperResK1KXK1.register_netblocks_dict(_all_netblocks_dict_)
 
 from PlainNet import SuperResIDWEXKX
+
 _all_netblocks_dict_ = SuperResIDWEXKX.register_netblocks_dict(_all_netblocks_dict_)
